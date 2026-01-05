@@ -1,2 +1,2 @@
 # DeepHive
-Dark archives of the internet.
+Dark Archives Of The Internet.
